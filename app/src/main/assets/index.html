@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Modular PC Remote</title>
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+</head>
+<body class="text-gray-200">
+
+    <div id="connection-modal" class="modal fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div class="modal-content bg-gray-800 p-6 rounded-2xl shadow-2xl w-11/12 max-w-sm text-center">
+            <h2 class="text-2xl font-bold mb-4">Connect to PC</h2>
+            <p id="modal-status" class="mb-4 text-gray-400">Enter your PC's IP and Secret Key.</p>
+            <input id="ip-input" type="text" placeholder="PC IP Address (e.g., 192.168.1.5)" class="w-full p-3 bg-gray-700 rounded-lg mb-3 text-center">
+            <input id="key-input" type="text" placeholder="Secret Key" class="w-full p-3 bg-gray-700 rounded-lg mb-4 text-center">
+            <button id="connect-btn" class="w-full p-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-bold transition-all">Connect</button>
+        </div>
+    </div>
+
+    <div id="editor-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div class="modal-content bg-gray-800 p-6 rounded-2xl shadow-2xl w-11/12 max-w-sm text-left">
+            <h2 id="editor-title" class="text-2xl font-bold mb-5">Edit Command</h2>
+            <label class="font-bold text-sm mb-1 block text-gray-400">Label</label>
+            <input id="editor-label" type="text" placeholder="Button Text" class="w-full p-3 bg-gray-700 rounded-lg mb-3 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="font-bold text-sm mb-1 block text-gray-400">Color</label>
+            <input id="editor-color" type="color" value="#4A5568" class="w-full p-1 h-12 bg-gray-700 rounded-lg mb-3">
+            <label class="font-bold text-sm mb-1 block text-gray-400">Action Type</label>
+            <select id="editor-type" class="w-full p-3 bg-gray-700 rounded-lg mb-3 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+            <div id="editor-params"></div>
+            <div class="flex justify-between mt-6">
+                <button id="editor-delete" class="px-5 py-2 bg-red-700/80 hover:bg-red-700 rounded-lg font-bold">Delete</button>
+                <div>
+                    <button id="editor-cancel" class="px-5 py-2 bg-gray-600/80 hover:bg-gray-600 rounded-lg font-bold mr-2">Cancel</button>
+                    <button id="editor-save" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-bold">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-ui" class="hidden h-full flex flex-col max-w-lg mx-auto">
+        <div class="ui-shell bg-gray-800 h-full flex flex-col rounded-2xl shadow-2xl overflow-hidden">
+            <header class="flex-shrink-0 flex justify-between items-center p-4 border-b border-gray-700/50">
+                <div id="connection-status" class="flex items-center">
+                    <span id="status-dot" class="status-dot status-disconnected"></span>
+                    <span id="status-text" class="text-sm font-medium">Disconnected</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <label for="edit-mode-toggle" class="flex items-center cursor-pointer">
+                        <span class="mr-2 font-bold text-xs text-gray-400">EDIT</span>
+                        <div class="relative">
+                            <input type="checkbox" id="edit-mode-toggle" class="sr-only peer">
+                            <div class="block bg-gray-600 w-12 h-7 rounded-full transition-colors peer-checked:bg-indigo-600"></div>
+                            <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-full"></div>
+                        </div>
+                    </label>
+                    <button id="disconnect-btn" class="header-btn w-10 h-10 bg-red-600/80 hover:bg-red-600 rounded-full flex items-center justify-center text-white"><i class="fa-solid fa-power-off text-sm"></i></button>
+                </div>
+            </header>
+            
+            <section class="flex-shrink-0 p-3 border-b border-gray-700/50 flex items-center space-x-4">
+                <label for="sensitivity-slider" class="text-xs font-bold text-gray-400">SCROLL</label>
+                <input type="range" id="sensitivity-slider" min="1" max="10" value="3" class="w-full">
+            </section>
+
+            <div class="flex-grow flex flex-col p-3 space-y-3 overflow-hidden">
+                <section class="flex-shrink-0 space-y-3">
+                    <div id="trackpad" class="trackpad"></div>
+                    <div class="grid grid-cols-2 gap-3 h-16">
+                        <div id="left-click-btn" class="mouse-btn btn flex-col">
+                            <i class="fa-solid fa-computer-mouse text-xl mb-1"></i>
+                            <span class="text-xs font-bold">Left</span>
+                        </div>
+                        <div id="right-click-btn" class="mouse-btn btn flex-col">
+                            <i class="fa-solid fa-computer-mouse text-xl mb-1"></i>
+                            <span class="text-xs font-bold">Right</span>
+                        </div>
+                    </div>
+                </section>
+
+                <main id="main-grid" class="flex-grow grid-container overflow-y-auto"></main>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
