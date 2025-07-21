@@ -1,6 +1,6 @@
 # Rhizome: A PC Remote Control
 
-A powerful, fully customizable remote control built via a Python server and an Android client. For latest releases and compiled binaries, please check out the [Releases](https://github.com/Sid-352/PC-Remote-Control/releases) page.
+A powerful, fully customizable remote control built via a Python server and an Android client. For latest releases and compiled binaries, please check out the [Releases](https://github.com/Sid-352/Rhizome/releases) page.
 
 ---
 
@@ -46,7 +46,7 @@ Follow these steps to get the remote up and running.
     pip install websockets pynput ujson
     ```
 3.  **Configure the Server**:
-    -   Navigate to the `Server Files` folder.
+    -   Navigate to the `server` folder.
     -   Open the `config.ini` file in a text editor.
     -   Set a `secret_key` that you will use to connect from your phone.
     ```ini
@@ -55,7 +55,7 @@ Follow these steps to get the remote up and running.
     secret_key = key_here
     ```
 4.  **Run the Server**:
-    -   In your terminal, while in the `Server Files` folder.
+    -   In your terminal, while in the `server` folder.
     -   Run the script:
     ```bash
     python server.py
