@@ -19,18 +19,19 @@ A powerful, fully customizable remote control built via a Python server and an A
 
 ---
 
-## Technology & Architecture
+## Architecture
 
 -   **The Server**: A Python script that runs on your computer.
     -   **Language**: Python 3
     -   **Core Libraries**:
         -   `websockets`: For handling the real-time, low-latency connection with the client.
         -   `pynput`: For programmatically controlling the host computer's mouse and keyboard.
+
 -   **The Client**: A native Android app that serves as a container for the web-based user interface.
     -   **Platform**: Android (built with Android Studio)
     -   **Language**: Kotlin
-    -   **Core Component**: A fullscreen `WebView` that renders the user interface.
-    -   **UI**: The interface is built with **HTML**, **CSS**, and **JavaScript**.
+    -   **Core Component**: Fullscreen `WebView` that renders the user interface.
+    -   **UI**: Interface built with **HTML**, **CSS**, and **JavaScript**.
 
 ---
 
