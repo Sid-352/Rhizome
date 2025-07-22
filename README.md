@@ -6,8 +6,8 @@ A powerful, fully customizable remote control built via a Python server and an A
 
 ## Core Features
 
--   **Full Mouse Control**: A trackpad with precise cursor movement, two-finger scrolling, and dedicated left/right-click buttons.
--   **Fully Customizable Command Grid**: An in-app editor that allows you to add, remove, resize, and re-color buttons.
+-   **Mouse Control**: A trackpad with cursor movement, two-finger scrolling, and dedicated left/right-click buttons.
+-   **Customizable Command Grid**: An in-app editor that allows you to add, remove, resize, and re-color buttons.
 -   **Powerful Macro Engine**: Automate complex tasks by programming buttons to execute a sequence of commands, such as typing text, pressing keys, and waiting for set intervals.
 -   **Versatile Action Types**:
     -   **Media Controls**: Native support for Play/Pause, Volume Up/Down, Mute, and Next/Previous Track.
@@ -15,7 +15,7 @@ A powerful, fully customizable remote control built via a Python server and an A
     -   **Key Combos**: Execute complex shortcuts like `Ctrl+Alt+Delete` or `Ctrl+Shift+Esc`.
     -   **Text Input**: Type any string of text on your PC.
     -   **Website Launcher**: Open any URL in your default browser.
-    -   **Shell Commands**: Run any command-line script or open any program (use with caution!).
+    -   **Shell Commands**: Run any command-line script or open any program.
 
 ---
 
@@ -36,7 +36,7 @@ A powerful, fully customizable remote control built via a Python server and an A
 
 ## Setup & Installation Guide
 
-Follow these steps to get the remote up and running.
+**If you are not utilizing the pre-compiled binaries**, follow these steps to get the remote up and running. Otherwise skip to `4.` for both Steps.
 
 ### Step 1: The PC Server
 
