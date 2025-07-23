@@ -1,6 +1,8 @@
 # Rhizome: A PC Remote Control
 
-A powerful, fully customizable remote control built via a Python server and an Android client. For latest releases and compiled binaries, please check out the [Releases](https://github.com/Sid-352/Rhizome/releases) page.
+A powerful, fully customizable remote control built via a Python server and an Android client. 
+
+Please check the [Wiki](https://github.com/Sid-352/Rhizome/wiki) for instructions and other information. For latest releases and compiled binaries, please check out the [Releases](https://github.com/Sid-352/Rhizome/releases) page.
 
 ---
 
