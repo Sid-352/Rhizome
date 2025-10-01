@@ -9,6 +9,7 @@ Please check the [Wiki](https://github.com/Sid-352/Rhizome/wiki) for instruction
 ## Features
 
 -   **Mouse Control**: A trackpad with cursor movement, two-finger scrolling, and dedicated left/right-click buttons.
+-   **Gyroscope Control**: Use your phone's tilt sensors to control the mouse cursor, simply tilt your phone in any direction to move the cursor smoothly across the screen.
 -   **Customizable Command Grid**: An in-app editor that allows you to add, remove, resize, and re-color buttons.
 -   **Powerful Macro Engine**: Automate complex tasks by programming buttons to execute a sequence of commands, such as typing text, pressing keys, and waiting for set intervals.
 -   **Versatile Action Types**:
