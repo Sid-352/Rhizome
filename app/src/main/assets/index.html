@@ -68,6 +68,18 @@
                 <input type="range" id="sensitivity-slider" min="1" max="10" value="3" class="w-full">
             </section>
 
+            <section class="flex-shrink-0 p-3 border-b border-gray-700/50 flex items-center space-x-4">
+                <label for="gyro-toggle" class="flex items-center cursor-pointer">
+                    <span class="mr-2 font-bold text-xs text-gray-400">GYRO</span>
+                    <div class="relative">
+                        <input type="checkbox" id="gyro-toggle" class="sr-only peer">
+                        <div class="block bg-gray-600 w-12 h-7 rounded-full transition-colors peer-checked:bg-indigo-600"></div>
+                        <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-full"></div>
+                    </div>
+                </label>
+                <input type="range" id="gyro-sensitivity" min="3" max="25" value="10" class="w-full">
+            </section>
+
             <div class="flex-grow flex flex-col p-3 space-y-3 overflow-hidden">
                 <section class="flex-shrink-0 space-y-3">
                     <div id="trackpad" class="trackpad"></div>

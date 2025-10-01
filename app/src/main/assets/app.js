@@ -11,6 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDragging = false;
     let isScrolling = false;
     let tapTimeout = null;
+    // Gyroscope variables
+    let isGyroActive = false;
+    let gyroSensitivity = 8;
+    let lastGyroUpdate = 0;
+    let lastTiltPitch = 0;
+    let lastTiltRoll = 0;
+    const TILT_SMOOTHING = 0.7;
 
     // =================================================================
     // --- DOM ELEMENT SELECTION ---
@@ -114,6 +121,77 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedCommands = localStorage.getItem('modular-remote-commands');
         commands = savedCommands ? JSON.parse(savedCommands) : defaultCommands;
         renderGrid();
+    }
+
+    /**
+     * Initializes the gyroscope handling functionality
+     */
+    /**
+     * Initializes the gyroscope handling functionality
+     */
+    function initGyroControls() {
+        const gyroToggle = $('gyro-toggle');
+        const gyroSensitivitySlider = $('gyro-sensitivity');
+
+        if (!gyroToggle || !gyroSensitivitySlider) return;
+
+        gyroToggle.addEventListener('change', (e) => {
+            isGyroActive = e.target.checked;
+            if (window.Android) {
+                window.Android.toggleGyroscope(isGyroActive);
+            }
+            if (isGyroActive) {
+                lastTiltPitch = 0;
+                lastTiltRoll = 0;
+            }
+        });
+
+        gyroSensitivitySlider.addEventListener('input', (e) => {
+            gyroSensitivity = parseInt(e.target.value, 10);
+        });
+
+        if (!window.handleTiltData) {
+            window.handleTiltData = function(pitch, roll) {
+                if (!isGyroActive || isEditMode) return;
+
+                const now = Date.now();
+                if (now - lastGyroUpdate < 16) return; // 60fps
+                lastGyroUpdate = now;
+
+                // Slightly heavier smoothing for smoother feel
+                const smoothing = 0.4; // Increased from 0.3
+                lastTiltPitch = smoothing * lastTiltPitch + (1 - smoothing) * pitch;
+                lastTiltRoll = smoothing * lastTiltRoll + (1 - smoothing) * roll;
+
+                // Smaller dead zone for smoother analog control
+                const deadZone = 3; // degrees
+
+                // Apply dead zone but keep the analog nature
+                let effectivePitch = lastTiltPitch;
+                let effectiveRoll = lastTiltRoll;
+
+                if (Math.abs(effectivePitch) < deadZone) effectivePitch = 0;
+                if (Math.abs(effectiveRoll) < deadZone) effectiveRoll = 0;
+
+                if (effectivePitch === 0 && effectiveRoll === 0) return;
+
+                // Horizontal is slower than vertical now
+                let dx = effectiveRoll * gyroSensitivity * 0.20; // Reduced from 0.25
+                let dy = effectivePitch * gyroSensitivity * 0.25; // Kept same
+
+                // Very gentle curve for subtle acceleration
+                const curve = 1.03; // Even more linear (was 1.05)
+                dx = Math.sign(dx) * Math.pow(Math.abs(dx), curve);
+                dy = Math.sign(dy) * Math.pow(Math.abs(dy), curve);
+
+                dx = Math.round(dx);
+                dy = Math.round(dy);
+
+                if (dx !== 0 || dy !== 0) {
+                    sendCommand({ type: 'mouse_move', data: { dx, dy } });
+                }
+            };
+        }
     }
 
     function saveCommands() {
@@ -341,4 +419,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- INITIALIZATION ---
     // =================================================================
     loadCommands();
+    initGyroControls();
 });
