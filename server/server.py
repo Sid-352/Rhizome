@@ -1,7 +1,7 @@
-# PC_Remote_Server.py (Simplified for Local Network)
+# server.py (Simplified for Local Network)
 #
 # INSTRUCTIONS:
-# 1. Install libraries: pip install websockets pynput
+# 1. Install libraries: pip install websockets pynput ujson
 # 2. Create a 'config.ini' file in the same directory.
 # 3. Run the script: python server.py
 
@@ -28,6 +28,14 @@ PORT = config.getint('server', 'port', fallback=59874)
 SECRET_KEY = config.get('server', 'secret_key', fallback=None)
 if not SECRET_KEY:
     SECRET_KEY = secrets.token_hex(16)
+    # Optionally save generated key to config
+    if not config.has_section('server'):
+        config.add_section('server')
+    config.set('server', 'secret_key', SECRET_KEY)
+    config.set('server', 'port', str(PORT))
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+    logging.info(f"Generated new secret key and saved to config.ini")
 
 # --- Logging Configuration ---
 logging.basicConfig(
@@ -44,6 +52,9 @@ class CommandExecutor:
     def __init__(self):
         self.keyboard = KeyboardController()
         self.mouse = MouseController()
+        # Rate limiting for mouse movements to prevent overwhelming the system
+        self.last_mouse_move = 0
+        self.mouse_move_threshold = 0.005  # 5ms between moves (200 updates/sec max)
         logging.info("CommandExecutor initialized.")
 
     def _get_special_key(self, key_str: str) -> Optional[Key]:
@@ -106,7 +117,7 @@ class CommandExecutor:
 
             try:
                 if command == 'TYPE':
-                    text_to_type = args.strip('"') # Handle quoted strings
+                    text_to_type = args.strip('"')
                     logging.info(f"  MACRO: Typing '{text_to_type}'")
                     self.type_text({'text': text_to_type})
                 elif command == 'PRESS':
@@ -125,7 +136,7 @@ class CommandExecutor:
 
             except Exception as e:
                 logging.error(f"  MACRO: Error executing line '{line}': {e}")
-                break  # Stop macro on error
+                break
         
         logging.info("--- Finished Macro Execution ---")
 
@@ -171,9 +182,19 @@ class CommandExecutor:
             logging.error(f"Error executing command '{command}': {e}")
 
     def mouse_move(self, data: Dict[str, Any]):
+        import time
+        current_time = time.time()
+        
+        # Rate limit mouse movements for gyro smoothness
+        if current_time - self.last_mouse_move < self.mouse_move_threshold:
+            return
+            
         dx = data.get('dx', 0)
         dy = data.get('dy', 0)
-        self.mouse.move(dx, dy)
+        
+        if dx != 0 or dy != 0:
+            self.mouse.move(dx, dy)
+            self.last_mouse_move = current_time
 
     def mouse_click(self, data: Dict[str, Any]):
         button_str = data.get('button', 'left')
@@ -193,12 +214,17 @@ class Server:
         self.port = port
         self.executor = CommandExecutor()
         self.command_handlers = {
-            'key_press': self.executor.key_press, 'key_combo': self.executor.key_combo,
-            'text': self.executor.type_text, 'media_control': self.executor.media_control,
-            'website': self.executor.open_website, 'shell': self.executor.shell_command,
-            'mouse_move': self.executor.mouse_move, 'mouse_click': self.executor.mouse_click,
+            'key_press': self.executor.key_press, 
+            'key_combo': self.executor.key_combo,
+            'text': self.executor.type_text, 
+            'media_control': self.executor.media_control,
+            'website': self.executor.open_website, 
+            'shell': self.executor.shell_command,
+            'mouse_move': self.executor.mouse_move, 
+            'mouse_click': self.executor.mouse_click,
             'mouse_scroll': self.executor.mouse_scroll,
         }
+        self.active_connections = 0
 
     async def _handle_authentication(self, websocket) -> bool:
         try:
@@ -207,7 +233,7 @@ class Server:
             
             if 'key' in data:
                 if data['key'] == SECRET_KEY:
-                    logging.info(f"Client authenticated successfully with key.")
+                    logging.info(f"Client authenticated successfully.")
                     await websocket.send(json.dumps({"type": "handshake_success"}))
                     return True
                 else:
@@ -221,8 +247,8 @@ class Server:
         except asyncio.TimeoutError:
             logging.warning("Authentication timed out.")
             return False
-        except (json.JSONDecodeError, TypeError):
-            logging.warning("Received invalid authentication message.")
+        except (json.JSONDecodeError, TypeError) as e:
+            logging.warning(f"Received invalid authentication message: {e}")
             return False
 
     async def _handle_connection(self, websocket):
@@ -235,6 +261,9 @@ class Server:
             await websocket.close()
             logging.info(f"Connection closed with {remote_addr} due to failed auth.")
             return
+        
+        self.active_connections += 1
+        logging.info(f"Active connections: {self.active_connections}")
         
         try:
             async for message in websocket:
@@ -260,7 +289,8 @@ class Server:
         except Exception as e:
             logging.error(f"An unexpected error occurred with {remote_addr}: {e}")
         finally:
-            logging.info(f"Connection with {remote_addr} is closed.")
+            self.active_connections -= 1
+            logging.info(f"Connection with {remote_addr} closed. Active connections: {self.active_connections}")
 
     def _get_local_ip(self) -> str:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -278,11 +308,19 @@ class Server:
 
         header = "\n" + "="*50
         logging.info(header)
-        logging.info("--- Modular PC Remote Server ---")
+        logging.info("--- Rhizome PC Remote Server ---")
         logging.info(f"  Listening on: ws://{ip_address}:{self.port}")
         logging.info(f"  Secret Key:   {SECRET_KEY}")
+        logging.info(f"  Ready to accept connections...")
         logging.info(header)
-        async with websockets.serve(self._handle_connection, self.host, self.port):
+        
+        async with websockets.serve(
+            self._handle_connection, 
+            self.host, 
+            self.port,
+            ping_interval=20,  # Send ping every 20 seconds
+            ping_timeout=10    # Wait 10 seconds for pong
+        ):
             await asyncio.Future()
 
 async def main():
@@ -293,6 +331,6 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logging.info("Server is shutting down.")
+        logging.info("\nServer is shutting down...")
     except OSError as e:
         logging.critical(f"ERROR: Could not start server. Is port {PORT} already in use? ({e})")

@@ -1,0 +1,4 @@
+websockets
+pynput
+ujson
+psutil
