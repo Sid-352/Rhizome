@@ -91,9 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ws.onclose = (event) => {
             const reason = event.reason || 'Disconnected';
             updateStatus('disconnected', reason);
-            if(mainUI) mainUI.style.display = 'none';
-            if(connectModal) connectModal.style.display = 'flex';
-            if(modalStatus) modalStatus.textContent = reason;
+            if (mainUI) mainUI.style.display = 'none';
+            if (connectModal) connectModal.style.display = 'flex';
+            if (modalStatus) modalStatus.textContent = reason;
         };
     }
 
@@ -109,9 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Expose sendCommand globally for keyboard.js
+    window.sendCommand = sendCommand;
+
     function updateStatus(state, text) {
-        if(statusDot) statusDot.className = `status-dot status-${state}`;
-        if(statusText) statusText.textContent = text;
+        if (statusDot) statusDot.className = `status-dot status-${state}`;
+        if (statusText) statusText.textContent = text;
     }
 
     // =================================================================
@@ -151,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!window.handleTiltData) {
-            window.handleTiltData = function(pitch, roll) {
+            window.handleTiltData = function (pitch, roll) {
                 if (!isGyroActive || isEditMode) return;
 
                 const now = Date.now();
@@ -198,13 +201,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('modular-remote-commands', JSON.stringify(commands));
         renderGrid();
     }
-    
+
     function renderGrid() {
         mainGrid.innerHTML = '';
         mainGrid.classList.toggle('edit-mode', isEditMode);
         const occupiedSlots = new Set();
         commands.forEach(cmd => {
-            for(let r=0; r < (cmd.h || 1); r++) for(let c=0; c < (cmd.w || 1); c++) occupiedSlots.add(`${cmd.row + r}-${cmd.col + c}`);
+            for (let r = 0; r < (cmd.h || 1); r++) for (let c = 0; c < (cmd.w || 1); c++) occupiedSlots.add(`${cmd.row + r}-${cmd.col + c}`);
             const btn = document.createElement('div');
             btn.className = 'btn-command btn';
             btn.innerHTML = `<span>${cmd.label}</span>`;
@@ -245,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editorColor.value = cmd.color;
             editorType.value = cmd.type;
             editorDelete.style.display = 'block';
-            updateEditorParams(cmd.type, {...cmd.params, w: cmd.w, h: cmd.h});
+            updateEditorParams(cmd.type, { ...cmd.params, w: cmd.w, h: cmd.h });
         } else {
             editorTitle.textContent = 'Add Command';
             editorLabel.value = '';
@@ -266,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateEditorParams(type, params = {}) {
         let html = '';
         switch (type) {
-            case 'key_press': html = `<label class="editor-label">Key</label><input type="text" id="param-key" class="editor-input" placeholder="e.g., enter, a, f5" value="${params.key || ''}">`; break;
+            case 'key_press': html = `<label class="editor-label">Key</label><input type="text" id="param-key" class="editor-input" placeholder="e.g., enter, a, f5" value="${params.key || ''}"`; break;
             case 'key_combo': html = `<label class="editor-label">Keys (comma separated)</label><input type="text" id="param-keys" class="editor-input" placeholder="e.g., ctrl,alt,delete" value="${(params.keys || []).join(',')}">`; break;
             case 'text': html = `<label class="editor-label">Text to Type</label><input type="text" id="param-text" class="editor-input" placeholder="Hello, World!" value="${params.text || ''}">`; break;
             case 'media_control':
@@ -276,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'shell': html = `<label class="editor-label">Shell Command</label><input type="text" id="param-command" class="editor-input" placeholder="e.g., notepad.exe" value="${params.command || ''}"><p class="text-xs text-yellow-400 mt-1">Warning: This can be dangerous.</p>`; break;
             case 'macro':
                 html = `<label class="editor-label">Macro Script</label>
-                        <textarea id="param-script" class="editor-input font-mono" rows="6" placeholder='TYPE "Hello"\nWAIT 1\nPRESS enter'>${params.script || ''}</textarea>
+                        <textarea id="param-script" class="editor-input font-mono" rows="6" placeholder='TYPE "Hello"\\nWAIT 1\\nPRESS enter'>${params.script || ''}</textarea>
                         <p class="text-xs text-gray-400 mt-1">Commands: TYPE, PRESS, COMBO, WAIT.</p>`;
                 break;
         }
@@ -286,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>`;
         editorParams.innerHTML = html;
     }
-    
+
     function handleSave() {
         const label = editorLabel.value.trim();
         if (!label) {
@@ -307,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'shell': params.command = $('param-command').value; break;
             case 'macro': params.script = $('param-script').value; break;
         }
-        
+
         if (editingCommandId) {
             const index = commands.findIndex(c => c.id === editingCommandId);
             if (index > -1) commands[index] = { ...commands[index], label, type, color: editorColor.value, params, w, h };
