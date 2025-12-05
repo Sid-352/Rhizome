@@ -1,4 +1,4 @@
-websockets
-pynput
-ujson
-psutil
+websockets==13.1
+pynput==1.7.7
+ujson==5.10.0
+psutil==6.0.0

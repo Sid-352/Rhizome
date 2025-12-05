@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDragging = false;
     let isScrolling = false;
     let tapTimeout = null;
+
     // Gyroscope variables
     let isGyroActive = false;
     let gyroSensitivity = 8;
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
     // --- WEBSOCKET & CORE LOGIC ---
     // =================================================================
+
     /** Provides haptic feedback by calling the native Android function. */
     function vibrate() {
         if (window.Android && typeof window.Android.performHapticFeedback === 'function') {
@@ -109,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Expose sendCommand globally for keyboard.js
+    // Expose sendCommand globally for usage outside this scope (e.g. keyboard handling)
     window.sendCommand = sendCommand;
 
     function updateStatus(state, text) {
@@ -126,9 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderGrid();
     }
 
-    /**
-     * Initializes the gyroscope handling functionality
-     */
     /**
      * Initializes the gyroscope handling functionality
      */
@@ -158,18 +157,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!isGyroActive || isEditMode) return;
 
                 const now = Date.now();
-                if (now - lastGyroUpdate < 16) return; // 60fps
+                if (now - lastGyroUpdate < 16) return; // Cap at ~60fps
                 lastGyroUpdate = now;
 
-                // Slightly heavier smoothing for smoother feel
-                const smoothing = 0.4; // Increased from 0.3
+                // Smoothing
+                const smoothing = 0.4;
                 lastTiltPitch = smoothing * lastTiltPitch + (1 - smoothing) * pitch;
                 lastTiltRoll = smoothing * lastTiltRoll + (1 - smoothing) * roll;
 
-                // Smaller dead zone for smoother analog control
-                const deadZone = 3; // degrees
-
-                // Apply dead zone but keep the analog nature
+                // Dead zone
+                const deadZone = 3;
                 let effectivePitch = lastTiltPitch;
                 let effectiveRoll = lastTiltRoll;
 
@@ -178,12 +175,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (effectivePitch === 0 && effectiveRoll === 0) return;
 
-                // Horizontal is slower than vertical now
-                let dx = effectiveRoll * gyroSensitivity * 0.20; // Reduced from 0.25
-                let dy = effectivePitch * gyroSensitivity * 0.25; // Kept same
+                // Sensitivity calculation
+                let dx = effectiveRoll * gyroSensitivity * 0.20;
+                let dy = effectivePitch * gyroSensitivity * 0.25;
 
-                // Very gentle curve for subtle acceleration
-                const curve = 1.03; // Even more linear (was 1.05)
+                // Acceleration curve
+                const curve = 1.03;
                 dx = Math.sign(dx) * Math.pow(Math.abs(dx), curve);
                 dy = Math.sign(dy) * Math.pow(Math.abs(dy), curve);
 
@@ -341,7 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
     editorSave.addEventListener('click', handleSave);
     editorCancel.addEventListener('click', closeEditor);
     editorDelete.addEventListener('click', handleDelete);
-    // --- OPTIMIZED Trackpad Listeners ---
+
+    // --- Trackpad Listeners ---
     let accumulatedDx = 0;
     let accumulatedDy = 0;
     let animationFrameId = null;
@@ -387,7 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 animationFrameId = requestAnimationFrame(sendMoveUpdate);
             }
         } else if (touches.length === 2 && isScrolling) {
-            // (Your existing two-finger scroll logic can go here, it's already efficient enough)
             const currentScrollY = (touches[0].clientY + touches[1].clientY) / 2;
             const dy = currentScrollY - lastScrollY;
             lastScrollY = currentScrollY;
