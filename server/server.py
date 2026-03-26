@@ -6,6 +6,7 @@ import ujson as json
 import secrets
 import socket
 import subprocess
+import shlex
 import webbrowser
 import logging
 import configparser
@@ -172,8 +173,11 @@ class CommandExecutor:
             return
         logging.warning(f"EXECUTING SHELL COMMAND: {command}")
         try:
-            process = await asyncio.create_subprocess_shell(command)
-            await process.wait()
+            args = shlex.split(command) # Safely split command string into a list of arguments
+            if not args:
+                logging.warning(f"Command '{command}' parsed into empty arguments list.")
+                return
+            subprocess.run(args, shell=False, check=False)
         except Exception as e:
             logging.error(f"Error executing command '{command}': {e}")
 
