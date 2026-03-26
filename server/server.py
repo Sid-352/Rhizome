@@ -165,14 +165,15 @@ class CommandExecutor:
         logging.info(f"Executing OPEN WEBSITE: {url}")
         webbrowser.open(url)
 
-    def shell_command(self, data: Dict[str, Any]):
+    async def shell_command(self, data: Dict[str, Any]):
         command = data.get('command')
         if not command:
             logging.warning("'shell' command received with no command.")
             return
         logging.warning(f"EXECUTING SHELL COMMAND: {command}")
         try:
-            subprocess.run(command, shell=True, check=False)
+            process = await asyncio.create_subprocess_shell(command)
+            await process.wait()
         except Exception as e:
             logging.error(f"Error executing command '{command}': {e}")
 
@@ -270,7 +271,10 @@ class Server:
                     else:
                         handler_func = self.command_handlers.get(command_type)
                         if handler_func:
-                            handler_func(command.get('data', {}))
+                            if asyncio.iscoroutinefunction(handler_func):
+                                await handler_func(command.get('data', {}))
+                            else:
+                                handler_func(command.get('data', {}))
                         else:
                             logging.warning(f"Received unknown command type '{command_type}'")
                 except json.JSONDecodeError:
